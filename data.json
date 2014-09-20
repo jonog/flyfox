@@ -1,0 +1,38 @@
+[
+ {
+  "id": "bar_id",
+  "display": "Bar",
+  "data": {
+  	"description": "Bar is the best!",
+  	"metric": 100
+  },
+  "score": 1
+ },
+ {
+  "id": "foo_id",
+  "display": "Foo Bar",
+  "data": {
+  	"description": "Foo Bar sucks!",
+  	"metric": 1
+  },
+  "score": 2
+ },
+ {
+  "id": "walau_id",
+  "display": "OK Bar",
+  "data": {
+  	"description": "Extremo!",
+  	"metric": 200
+  },
+  "score": 3
+ },
+ {
+  "id": "ok_id",
+  "display": "Ok Foo",
+  "data": {
+  	"description": "Hiya!",
+  	"metric": 110
+  },
+  "score": 4
+ }
+]
