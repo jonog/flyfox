@@ -2,13 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"strings"
 )
 
 const (
-	LEX_ZSET_PREFIX     = "ac"
+	LEX_ZSET_KEY        = "ac"
 	STORAGE_HASH_PREFIX = "ac:d:"
 	QUERY_SET_PREFIX    = "ac:q:"
 )
@@ -32,22 +31,22 @@ func (i *Item) Save() (err error) {
 	// TODO - add stopword filtering
 	terms := strings.Split(i.Display, " ")
 
-	// TODO - batch inserts, amount to load could be large
 	conn.Send("MULTI")
+
 	for _, val := range terms {
-		conn.Send("ZADD", LEX_ZSET_PREFIX, 0, strings.ToLower(val)+":"+i.Id)
-
-		// json stored within redis contains id, display, score
-		// this is to avoid decoding/re-encoding the json received from redis within the Go app
-		i.Data["id"] = i.Id
-		i.Data["display"] = i.Display
-		i.Data["score"] = i.Score
-
-		dataJSON, _ := json.Marshal(i.Data)
-		fmt.Println(string(dataJSON))
-		conn.Send("HMSET", STORAGE_HASH_PREFIX+i.Id, "id", i.Id, "score", i.Score, "json", dataJSON)
+		conn.Send("ZADD", LEX_ZSET_KEY, 0, strings.ToLower(val)+":"+i.Id)
 	}
+
+	// json stored within redis contains id, display, score
+	// this is to avoid decoding/re-encoding the json received from redis within the Go app
+	i.Data["id"] = i.Id
+	i.Data["display"] = i.Display
+	i.Data["score"] = i.Score
+	dataJSON, _ := json.Marshal(i.Data)
+	conn.Send("HMSET", STORAGE_HASH_PREFIX+i.Id, "id", i.Id, "score", i.Score, "json", dataJSON)
+
 	_, err = conn.Do("EXEC")
+
 	return
 }
 
@@ -60,7 +59,7 @@ func zsetNameToId(input string) string {
 func cacheIdsInSet(conn redis.Conn, query string) error {
 
 	// TODO - skip this match via lex, if the set exists
-	matchedIds, err := redis.Strings(conn.Do("ZRANGEBYLEX", LEX_ZSET_PREFIX, "["+query+"\x00", "["+query+"\xff"))
+	matchedIds, err := redis.Strings(conn.Do("ZRANGEBYLEX", LEX_ZSET_KEY, "["+query+"\x00", "["+query+"\xff"))
 	if err != nil {
 		return err
 	}
@@ -85,12 +84,12 @@ func Search(query string, limit int) ([]byte, error) {
 		return nil, err
 	}
 
-	sortData, err := redis.Strings(conn.Do("SORT", QUERY_SET_PREFIX+query, "BY", STORAGE_HASH_PREFIX+"*->score", "LIMIT", 0, limit, "GET", STORAGE_HASH_PREFIX+"*->json", "DESC"))
+	sortResult, err := redis.Strings(conn.Do("SORT", QUERY_SET_PREFIX+query, "BY", STORAGE_HASH_PREFIX+"*->score", "LIMIT", 0, limit, "GET", STORAGE_HASH_PREFIX+"*->json", "DESC"))
 	if err != nil {
 		return nil, err
 	}
 
-	jsonReponse := "[" + strings.Join(sortData, ",") + "]"
+	jsonReponse := "[" + strings.Join(sortResult, ",") + "]"
 
 	return []byte(jsonReponse), err
 }
