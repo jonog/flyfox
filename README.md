@@ -4,13 +4,13 @@
 * currently results based on 'score', with further querying flexibility soon
 
 ## Get Started
-** build **
+**build**
 ```go build```
 
-** load data **
+**load data**
 ```./flyfox load_data ./data.json```
 
-** run web server **
+**run web server**
 ```./flyfox web```
 
 ## Planned Improvements
