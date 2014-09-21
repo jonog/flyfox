@@ -14,7 +14,7 @@ const (
 
 type Item struct {
 	Id      string                 `json:"id"`
-	Display string                 `json:"display"`
+	Phrase  string                 `json:"phrase"`
 	Data    map[string]interface{} `json:"data,omitempty"`
 	Score   int                    `json:"score"`
 
@@ -29,7 +29,7 @@ func (i *Item) Save() (err error) {
 	defer conn.Close()
 
 	// TODO - add stopword filtering
-	terms := strings.Split(i.Display, " ")
+	terms := strings.Split(i.Phrase, " ")
 
 	conn.Send("MULTI")
 
@@ -37,10 +37,9 @@ func (i *Item) Save() (err error) {
 		conn.Send("ZADD", LEX_ZSET_KEY, 0, strings.ToLower(val)+":"+i.Id)
 	}
 
-	// json stored within redis contains id, display, score
+	// store id and score within the json
 	// this is to avoid decoding/re-encoding the json received from redis within the Go app
 	i.Data["id"] = i.Id
-	i.Data["display"] = i.Display
 	i.Data["score"] = i.Score
 	dataJSON, _ := json.Marshal(i.Data)
 	conn.Send("HMSET", STORAGE_HASH_PREFIX+i.Id, "id", i.Id, "score", i.Score, "json", dataJSON)
