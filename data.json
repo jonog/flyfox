@@ -1,36 +1,40 @@
 [
  {
-  "id": "bar_id",
-  "display": "Bar",
+  "id": "b_id",
+  "phrase": "B",
   "data": {
-  	"description": "Bar is the best!",
+    "display": "B",
+  	"description": "B!",
   	"metric": 100
   },
   "score": 1
  },
  {
-  "id": "foo_id",
-  "display": "Foo Bar",
+  "id": "ba_id",
+  "phrase": "Ba",
   "data": {
-  	"description": "Foo Bar sucks!",
+    "display": "Ba",
+  	"description": "Ba!",
   	"metric": 1
   },
   "score": 2
  },
  {
-  "id": "walau_id",
-  "display": "OK Bar",
+  "id": "bar_id",
+  "phrase": "Bar",
   "data": {
-  	"description": "Extremo!",
+    "display": "Bar",
+  	"description": "Bar!",
   	"metric": 200
   },
   "score": 3
  },
  {
-  "id": "ok_id",
-  "display": "Ok Foo",
+  "id": "baz_id",
+  "phrase": "Baz",
   "data": {
-  	"description": "Hiya!",
+    "display": "Baz",
+  	"description": "Baz!",
   	"metric": 110
   },
   "score": 4
