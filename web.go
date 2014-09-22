@@ -27,7 +27,7 @@ func WebInit() {
 	RedisInit()
 
 	m := mux.NewRouter()
-	m.HandleFunc("/search/{query}", Query).Methods("GET")
+	m.HandleFunc("/search", Query).Methods("GET")
 
 	http.Handle("/", m)
 	fmt.Println("Listening on Port 3001")
@@ -40,16 +40,27 @@ func WebInit() {
 func Query(res http.ResponseWriter, req *http.Request) {
 
 	queryParams := req.URL.Query()
+
+	termParams := queryParams["term"]
+	if len(termParams) == 0 {
+		http.Error(res, "Missing parameter 'term'", http.StatusBadRequest)
+		return
+	}
+	query := termParams[0]
+
 	types := queryParams["types[]"]
-	// todo - bad request 400 if no types are specified
+	if len(types) == 0 {
+		http.Error(res, "Missing parameter 'types'", http.StatusBadRequest)
+		return
+	}
 
 	limit := getLimit(queryParams)
 
 	startTime := time.Now().UTC()
-	query := mux.Vars(req)["query"]
 	items, err := Search(types, query, limit)
 	if err != nil {
-		panic(err)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	fmt.Println(CLR_W, "Search query: ", CLR_Y, query, CLR_R, time.Now().UTC().Sub(startTime), CLR_N)
 
