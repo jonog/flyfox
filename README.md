@@ -4,6 +4,13 @@
 * currently results based on 'score', with further querying flexibility soon
 
 ## Get Started
+**install dependencies**
+```
+go get github.com/gorilla/mux
+go get github.com/garyburd/redigo/redis
+go get github.com/satori/go.uuid
+```
+
 **build**
 ```go build```
 
