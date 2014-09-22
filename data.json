@@ -7,6 +7,7 @@
   	"description": "B!",
   	"metric": 100
   },
+  "type": "sample",
   "score": 1
  },
  {
@@ -17,6 +18,7 @@
   	"description": "Ba!",
   	"metric": 1
   },
+  "type": "sample",
   "score": 2
  },
  {
@@ -27,6 +29,7 @@
   	"description": "Bar!",
   	"metric": 200
   },
+  "type": "sample",
   "score": 3
  },
  {
@@ -37,6 +40,51 @@
   	"description": "Baz!",
   	"metric": 110
   },
+  "type": "sample",
+  "score": 4
+ },
+ {
+  "id": "b_id_2",
+  "phrase": "B",
+  "data": {
+    "display": "B",
+    "description": "B!",
+    "metric": 100
+  },
+  "type": "sample_2",
+  "score": 1
+ },
+ {
+  "id": "ba_id_2",
+  "phrase": "Ba",
+  "data": {
+    "display": "Ba",
+    "description": "Ba!",
+    "metric": 1
+  },
+  "type": "sample_2",
+  "score": 2
+ },
+ {
+  "id": "bar_id_2",
+  "phrase": "Bar",
+  "data": {
+    "display": "Bar",
+    "description": "Bar!",
+    "metric": 200
+  },
+  "type": "sample_2",
+  "score": 3
+ },
+ {
+  "id": "baz_id_2",
+  "phrase": "Baz",
+  "data": {
+    "display": "Baz",
+    "description": "Baz!",
+    "metric": 110
+  },
+  "type": "sample_2",
   "score": 4
  }
 ]

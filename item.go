@@ -3,20 +3,23 @@ package main
 import (
 	"encoding/json"
 	"github.com/garyburd/redigo/redis"
+	"github.com/satori/go.uuid"
 	"strings"
 )
 
 const (
-	LEX_ZSET_KEY        = "ac"
-	STORAGE_HASH_PREFIX = "ac:d:"
-	QUERY_SET_PREFIX    = "ac:q:"
+	LEX_ZSET_KEY           = "ac"
+	TYPE_SCORE_ZSET_PREFIX = "ac:s:"
+	STORAGE_HASH_PREFIX    = "ac:d:"
+	QUERY_SET_PREFIX       = "ac:q:"
 )
 
 type Item struct {
-	Id      string                 `json:"id"`
-	Phrase  string                 `json:"phrase"`
-	Data    map[string]interface{} `json:"data,omitempty"`
-	Score   int                    `json:"score"`
+	Id     string                 `json:"id"`
+	Phrase string                 `json:"phrase"`
+	Data   map[string]interface{} `json:"data,omitempty"`
+	Score  int                    `json:"score"`
+	Type   string                 `json:"type"`
 
 	// TODO
 	// sortable metrics in data - ability to specify indexing when loading
@@ -37,12 +40,14 @@ func (i *Item) Save() (err error) {
 		conn.Send("ZADD", LEX_ZSET_KEY, 0, strings.ToLower(val)+":"+i.Id)
 	}
 
+	conn.Send("ZADD", TYPE_SCORE_ZSET_PREFIX+i.Type, i.Score, i.Id)
+
 	// store id and score within the json
 	// this is to avoid decoding/re-encoding the json received from redis within the Go app
 	i.Data["id"] = i.Id
 	i.Data["score"] = i.Score
 	dataJSON, _ := json.Marshal(i.Data)
-	conn.Send("HMSET", STORAGE_HASH_PREFIX+i.Id, "id", i.Id, "score", i.Score, "json", dataJSON)
+	conn.Send("HMSET", STORAGE_HASH_PREFIX+i.Id, "id", i.Id, "json", dataJSON)
 
 	_, err = conn.Do("EXEC")
 
@@ -73,7 +78,21 @@ func cacheIdsInSet(conn redis.Conn, query string) error {
 	return nil
 }
 
-func Search(query string, limit int) ([]byte, error) {
+func intersectAndSort(conn redis.Conn, query string, limit int, t string) ([]string, error) {
+
+	tmpId := uuid.NewV4().String()
+	// expensive to zinterstore everything - perhaps could apply limit first to the type score zset
+	conn.Do("ZINTERSTORE", tmpId, 2, QUERY_SET_PREFIX+query, TYPE_SCORE_ZSET_PREFIX+t)
+	sortResult, err := redis.Strings(conn.Do("SORT", tmpId, "BY", "score", "LIMIT", 0, limit, "GET", STORAGE_HASH_PREFIX+"*->json", "DESC"))
+	if err != nil {
+		return nil, err
+	}
+	// this vs del?
+	conn.Do("EXPIRE", tmpId, 1)
+	return sortResult, err
+}
+
+func Search(types []string, query string, limit int) ([]byte, error) {
 
 	conn := pool.Get()
 	defer conn.Close()
@@ -83,12 +102,14 @@ func Search(query string, limit int) ([]byte, error) {
 		return nil, err
 	}
 
-	sortResult, err := redis.Strings(conn.Do("SORT", QUERY_SET_PREFIX+query, "BY", STORAGE_HASH_PREFIX+"*->score", "LIMIT", 0, limit, "GET", STORAGE_HASH_PREFIX+"*->json", "DESC"))
-	if err != nil {
-		return nil, err
+	var allResults []string
+	for _, t := range types {
+		typeResults, err := intersectAndSort(conn, query, limit, t)
+		if err != nil {
+			return nil, err
+		}
+		allResults = append(allResults, resultsToJSONArray(typeResults))
 	}
-
-	jsonReponse := "[" + strings.Join(sortResult, ",") + "]"
-
-	return []byte(jsonReponse), err
+	jsonResponse := typesAndResultsByTypeToJSON(types, allResults)
+	return []byte(jsonResponse), err
 }
