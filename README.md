@@ -8,7 +8,6 @@
 ```
 go get github.com/gorilla/mux
 go get github.com/garyburd/redigo/redis
-go get github.com/satori/go.uuid
 ```
 
 **build**
