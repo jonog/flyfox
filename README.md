@@ -1,7 +1,7 @@
 
 ## flyfox
 * autocomplete 'microservice' using Go/Redis
-* currently results based on 'score', with further querying flexibility soon
+* results categorised by 'type' and ordered by 'score'
 
 ## Get Started
 **install dependencies**
@@ -27,7 +27,7 @@ go get github.com/satori/go.uuid
 * ~~better error handling (return 500, don't panic)~~
 * add min query length requirement
 * ~~groups/types [ability to query on a single type]~~
-* lua scripting to replace sequential redis calls
+* improve memory efficiency
 * sorting on specified fields
 * handle no ids [internal id generation]
 * stop words
