@@ -10,6 +10,7 @@ const (
 	ZSET_PREFIX         = "ac:z:"
 	STORAGE_HASH_PREFIX = "ac:d:"
 	QUERY_SET_PREFIX    = "ac:q:"
+	MAX_LIMIT           = 10
 )
 
 type Item struct {
@@ -43,7 +44,9 @@ func (i *Item) Save() (err error) {
 		stringForIndexing := strings.ToLower(val)
 
 		for idx, _ := range stringForIndexing {
-			conn.Send("ZADD", ZSET_PREFIX+i.Type+":"+stringForIndexing[0:idx+1], i.Score, i.Id)
+			zsetKey := ZSET_PREFIX + i.Type + ":" + stringForIndexing[0:idx+1]
+			conn.Send("ZADD", zsetKey, i.Score, i.Id)
+			conn.Send("ZREMRANGEBYRANK", zsetKey, 0, -MAX_LIMIT-1)
 		}
 
 	}
