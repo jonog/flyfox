@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/garyburd/redigo/redis"
 	"time"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 var pool *redis.Pool
 
 func RedisInit() {
-	pool = NewPool(":6379")
+	pool = NewPool("flyfox_redis:6379")
 }
 
 func NewPool(server string) *redis.Pool {
